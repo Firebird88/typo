@@ -52,6 +52,32 @@ class Admin::ContentController < Admin::BaseController
     redirect_to :action => 'index'
   end
 
+  def merge
+    @record=Article.find(params[:id])
+
+    unless @record.access_by?(current_user)
+      flash[:error]=_("Error, you are not allowed to perform this action")
+      return(redirect_to :action=>'index')      
+    end
+    
+    article_to_merge=Article.find(params[:merge_with])
+
+    if article_to_merge==nil
+      flash[:error]=_("Error, article to merge does not exists")
+      return(redirect_to :action=>'index')      
+    end
+
+    if @record.id==article_to_merge.id
+      flash[:error]=_("Error, you can't merge the article with itself")
+      return(redirect_to :action=>'index')
+    end
+
+    @record.merge_with(article_to_merge.id)
+
+    flash[:notice] = _("This articles were merged successfully")
+    redirect_to :action => 'index'
+  end
+
   def insert_editor
     editor = 'visual'
     editor = 'simple' if params[:editor].to_s == 'simple'
